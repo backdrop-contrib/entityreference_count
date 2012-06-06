@@ -392,6 +392,10 @@ function entityreference_count_get_referenced_ids($entity, $counted_fields) {
  *   implementation above for more info.
  */
 function entityreference_count_references_update($entity_type, $entity, $delay = FALSE) {
+  if (!$entity_type && empty($entity->type)) {
+    return;
+  }
+
   // Get all the entity reference fields for this content type.
   $entityreference_fields = entityreference_count_get_entityreference_fields($entity_type, $entity->type);
 
@@ -434,8 +438,10 @@ function entityreference_count_references_update($entity_type, $entity, $delay =
  */
 function entityreference_count_update_count($entity_type, $entity_id) {
   $entity = entity_load($entity_type, array($entity_id));
-  field_attach_presave($entity_type, $entity[$entity_id]);
-  field_attach_update($entity_type, $entity[$entity_id]);
+  if (isset($entity[$entity_id])) {
+    field_attach_presave($entity_type, $entity[$entity_id]);
+    field_attach_update($entity_type, $entity[$entity_id]);
+  }
 }
 
 /**
@@ -449,7 +455,7 @@ function entityreference_count_update_count($entity_type, $entity_id) {
 function entityreference_count_delayed_entity_ids($entity_type = NULL, $entity_id = NULL) {
   $entity_ids = &drupal_static(__FUNCTION__, array());
 
-  if (!is_null($entity_id) && !isset($entity_ids[$entity_id]) && !is_null($entity_type)) {
+  if (!is_null($entity_ids) && !isset($entity_ids[$entity_id]) && !is_null($entity_type)) {
     $entity_ids[$entity_id] = $entity_type;
   }
 
@@ -462,7 +468,7 @@ function entityreference_count_delayed_entity_ids($entity_type = NULL, $entity_i
 function entityreference_count_exit() {
   $entity_ids = entityreference_count_delayed_entity_ids();
 
-  if (!empty($entity_ids)) {
+  if (!empty($entity_id)) {
     foreach ($entity_ids as $entity_id => $entity_type) {
       entityreference_count_update_count($entity_type, $entity_id);
     }
