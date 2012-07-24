@@ -392,7 +392,7 @@ function entityreference_count_get_referenced_ids($entity, $counted_fields) {
  *   implementation above for more info.
  */
 function entityreference_count_references_update($entity_type, $entity, $delay = FALSE) {
-  if (!$entity_type && empty($entity->type)) {
+  if (!$entity_type || !isset($entity->type)) {
     return;
   }
 
