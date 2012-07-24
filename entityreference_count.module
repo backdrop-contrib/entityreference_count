@@ -48,7 +48,7 @@ function entityreference_count_field_options($bundle) {
  * Implements hook_field_instance_settings_form().
  */
 function entityreference_count_field_instance_settings_form($field, $instance) {
-  $settigs = $instance['settings'];
+  $settings = $instance['settings'];
   $options = entityreference_count_field_options($instance['bundle']);
   $form = array();
 
