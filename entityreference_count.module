@@ -16,6 +16,7 @@ function entityreference_count_field_info() {
       'instance_settings' => array(
         'counted_reference_fields' => array(),
         'count_only_published' => TRUE,
+        'allowed_bundles' => array(),
       ),
       'default_widget' => 'entityreference_count_widget',
       'default_formatter' => 'entityreference_count_formatter_default',
@@ -72,6 +73,22 @@ function entityreference_count_field_instance_settings_form($field, $instance) {
       '#type' => 'checkbox',
       '#title' => t('Do not count references from unpublished nodes.'),
       '#default_value' => $settings['count_only_published'],
+    );
+    $bundles_list = field_info_bundles($instance['entity_type']);
+    $bundles = array();
+    if ($bundles_list) {
+      foreach ($bundles_list as $bkey => $data) {
+        $bundles[$bkey] = $data['label'];
+      }
+    }
+    $form['allowed_bundles'] = array(
+      '#type' => 'select',
+      '#title' => t('Count nodes that belong to these bundles.'),
+      '#description' => t('If no bundles are selected, all bundles will be counted.'),
+      '#options' => $bundles,
+      '#multiple' => TRUE,
+      '#default_value' => !empty($settings['allowed_bundles']) ? array_filter($settings['allowed_bundles']) : array(),
+      '#size' => max(4, count($bundles)),
     );
   }
 
@@ -383,7 +400,10 @@ function entityreference_count_get_count($settings, $entity_type, $entity) {
     if ($settings['count_only_published']) {
       $query->condition('e.status', 1);
     }
-
+    if (!empty($settings['allowed_bundles'])) {
+      $query->condition('nr.bundle', array_keys($settings['allowed_bundles']), 'IN');
+    }
+    
     unset($db[0]);
 
     // Add each additional field to the query via a UNION ALL.
@@ -394,6 +414,9 @@ function entityreference_count_get_count($settings, $entity_type, $entity) {
       $select->condition("{$alias}.{$d['column']}", $entity->{$entity_key_id});
       if ($settings['count_only_published']) {
         $select->condition('e.status', 1);
+      }
+      if (!empty($settings['allowed_bundles'])) {
+        $query->condition('nr.bundle', array_keys($settings['allowed_bundles']), 'IN');
       }
 
       $query->union($select, 'UNION ALL');
