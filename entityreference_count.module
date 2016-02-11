@@ -369,9 +369,11 @@ function entityreference_count_get_referenced_ids($entity, $counted_fields) {
     if (isset($entity->original)) {
       $original_entityreferences = $entity->original->$counted_field;
 
-      foreach ($original_entityreferences as $language => $deltas) {
-        foreach ($deltas as $delta => $entityreference) {
-          $target_ids[$entityreference['target_id']] = $target_type;
+      if (!empty($original_entityreferences)) {
+        foreach ($original_entityreferences as $language => $deltas) {
+          foreach ($deltas as $delta => $entityreference) {
+            $target_ids[$entityreference['target_id']] = $target_type;
+          }
         }
       }
     }
