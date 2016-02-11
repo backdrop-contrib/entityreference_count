@@ -124,30 +124,182 @@ function entityreference_count_field_formatter_info() {
     'entityreference_count_default' => array(
       'label' => t('Default'),
       'field types' => array('entityreference_count'),
+      'settings'  => array(
+        'link' => FALSE,
+        'link_class' => '',
+      ),
     ),
     'entityreference_count_nonzero' => array(
       'label' => t('Non-zero'),
       'field types' => array('entityreference_count'),
     ),
+    'entityreference_count_labeled_count' => array(
+      'label' => t('Labeled Count'),
+      'field types' => array('entityreference_count'),
+      'settings'  => array(
+        'link' => FALSE,
+        'link_class' => '',
+        'singular' => '',
+        'plural' => '',
+      ),
+    ),
   );
 }
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function entityreference_count_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $element = array();
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  if ($display['type'] == 'entityreference_count_default') {
+    $element['link'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Link count to the referenced entity'),
+      '#default_value' => $settings['link'],
+    );
+    $element['link_class'] = array(
+      '#type' => 'textfield',
+      '#title' => t('CSS class for the generated link.'),
+      '#default_value' => $settings['link_class'],
+      '#states' => array(
+        'visible' => array(
+          'input[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][link]"], input[name="options[settings][link]"], input[name="link"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+  }
+
+  // Based on function format_plural
+  // See https://api.drupal.org/api/drupal/includes%21common.inc/function/format_plural/7
+  if ($display['type'] == 'entityreference_count_labeled_count') {
+    $element['singular'] = array(
+      '#title' => t('Singular Label'),
+      '#description' => t('The string for the singular case. Make sure it is clear this is singular, to ease translation (e.g., use "1 new comment" instead of "1 new"). Do not use @count in the singular string.'),
+      '#type' => 'textfield',
+      '#size' => 50,
+      '#default_value' => (empty($settings['singular'])) ? '1 reference' : $settings['singular'],
+      '#required' => TRUE,
+    );
+    $element['plural'] = array(
+      '#title' => t('Plural Label'),
+      '#description' => t('The string for the plural case. Make sure it is clear this is plural, to ease translation. Use @count in place of the item count, (e.g., "@count new comments").'),
+      '#type' => 'textfield',
+      '#size' => 50,
+      '#default_value' => (empty($settings['plural'])) ? '@count references' : $settings['plural'],
+      '#required' => TRUE,
+    );
+    $element['link'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Link count to the referenced entity'),
+      '#default_value' => $settings['link'],
+    );
+    $element['link_class'] = array(
+      '#type' => 'textfield',
+      '#title' => t('CSS class for the generated link.'),
+      '#default_value' => $settings['link_class'],
+      '#states' => array(
+        'visible' => array(
+          'input[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][link]"], input[name="options[settings][link]"], input[name="link"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function entityreference_count_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = array();
+
+  if ($display['type'] == 'entityreference_count_default') {
+    $summary[] = $settings['link'] ? t('Link to the referenced entity') : t('No link');
+    $summary[] = t('Link class: @link_class', array('@link_class' => $settings['link_class']));
+  }
+
+  if ($display['type'] == 'entityreference_count_labeled_count') {
+    $summary[] =  t('Singular label: @singular', array('@singular' => $settings['singular']));
+    $summary[] = t('Plural label: @plural', array('@plural' => $settings['plural']));
+    $summary[] = $settings['link'] ? t('Link to the referenced entity') : t('No link');
+    $summary[] = t('Link class: @link_class', array('@link_class' => $settings['link_class']));
+  }
+
+  return implode('<br />', $summary);
+}
+
+
 
 /**
  * Implements hook_field_formatter_view().
  */
 function entityreference_count_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
+  $settings = $display['settings'];
 
   switch ($display['type']) {
     case 'entityreference_count_default':
       foreach ($items as $delta => $item) {
-        $element[$delta] = array('#markup' => $item['count']);
+        // Handle Conditional Link Logic
+        if ($settings['link'] && ($uri = entity_uri($entity_type, $entity))) {
+          $element[$delta] = array('#markup' => l(
+            $item['count'],
+            $uri['path'],
+            array(
+              'html' => TRUE,
+              'attributes' => array(
+                'title' => $item['count'],
+                'class' => array($settings['link_class'])
+              ),
+            )
+          ));
+        }
+        else {
+          $element[$delta] = array('#markup' => $item['count']);
+        }
       }
       break;
 
     case 'entityreference_count_nonzero':
       foreach ($items as $delta => $item) {
         if ($item['count'] > 0) {
+          $element[$delta] = array('#markup' => $item['count']);
+        }
+      }
+      break;
+
+    case 'entityreference_count_labeled_count':
+      foreach ($items as $delta => $item) {
+        $output = '';
+        // Handle Zero, Singular, Plural Logic
+        if ($item['count'] > 0) {
+          $output = format_plural($item['count'], $settings['singular'], $settings['plural']);
+        }
+        else {
+          $output = 0;
+        }
+        // Handle Conditional Link Logic
+        if ($settings['link'] && ($item['count'] > 0) && ($uri = entity_uri($entity_type, $entity))) {
+          $element[$delta] = array('#markup' => l(
+            $output,
+            $uri['path'],
+            array(
+              'html' => TRUE,
+              'attributes' => array(
+                'title' => $output,
+                'class' => array($settings['link_class'])
+              ),
+            )
+          ));
+        }
+        else {
           $element[$delta] = array('#markup' => $item['count']);
         }
       }
