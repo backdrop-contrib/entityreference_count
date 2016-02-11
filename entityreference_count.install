@@ -1,0 +1,20 @@
+<?php
+/**
+ * @file
+ * Installation and update hooks for EntityReference_Count.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function entityreference_count_field_schema($field) {
+  return array(
+    'columns' => array(
+      'count' => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+  );
+}
