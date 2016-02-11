@@ -220,7 +220,7 @@ function entityreference_count_get_count($settings, $entity_type, $entity) {
     return;
   }
 
-  if (!empty($db)) {
+  if (!empty($db) && isset($entity->{$entity_info['entity keys']['id']})) {
     $base_table = $entity_info['base table'];
     $entity_key_id = $entity_info['entity keys']['id'];
 
