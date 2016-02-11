@@ -603,6 +603,9 @@ function entityreference_count_update_count($entity_type, $entity_id) {
   if (isset($entity[$entity_id])) {
     field_attach_presave($entity_type, $entity[$entity_id]);
     field_attach_update($entity_type, $entity[$entity_id]);
+
+    // Clear the cache for this entity.
+    entity_get_controller($entity_type)->resetCache(array($entity_id));
   }
 }
 
