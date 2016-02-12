@@ -20,6 +20,7 @@ function entityreference_count_field_info() {
       ),
       'default_widget' => 'entityreference_count_widget',
       'default_formatter' => 'entityreference_count_formatter_default',
+      'property_type' => 'integer',
     ),
   );
 }
@@ -606,6 +607,17 @@ function entityreference_count_update_count($entity_type, $entity_id) {
 
     // Clear the cache for this entity.
     entity_get_controller($entity_type)->resetCache(array($entity_id));
+
+    module_invoke_all('entityreference_count_updated', $entity_type, $entity[$entity_id]);
+  }
+}
+
+/**
+ * Implements hook entityreference_count_updated.
+ */
+function entityreference_count_entityreference_count_updated($entity_type, $entity) {
+  if (module_exists('rules')) {
+    rules_invoke_event('entityreference_count_updated', entity_metadata_wrapper($entity_type, $entity));
   }
 }
 
