@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file Basic rules integration for entityreference_count module.
+ * @file
+ * Basic rules integration for entityreference_count module.
  */
 
 /**

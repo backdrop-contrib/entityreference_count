@@ -389,7 +389,7 @@ function entityreference_count_get_count($settings, $entity_type, $entity) {
     if (!empty($settings['allowed_bundles'])) {
       $query->condition('nr.bundle', array_keys($settings['allowed_bundles']), 'IN');
     }
-    
+
     unset($db[0]);
 
     // Add each additional field to the query via a UNION ALL.
@@ -443,9 +443,9 @@ function entityreference_count_entity_update($entity, $entity_type) {
  * The cached array can then be processed via hook_exit() after the
  * database updates are done so that we get a correct count.
  *
- * @see entityreference_count_references_update().
- * @see entityreference_count_delayed_entity_ids().
- * @see entityreference_count_exit().
+ * @see entityreference_count_references_update()
+ * @see entityreference_count_delayed_entity_ids()
+ * @see entityreference_count_exit()
  */
 function entityreference_count_entity_delete($entity, $entity_type) {
   entityreference_count_references_update($entity_type, $entity, TRUE);
