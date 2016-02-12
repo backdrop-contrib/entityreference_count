@@ -37,7 +37,7 @@ function entityreference_count_field_options($bundle) {
   $field_options = array();
 
   foreach ($field_types as $field_type) {
-    if ($field_type['type'] == 'entityreference' && isset($field_type['settings']['handler_settings']['target_bundles'][$bundle]) && $field_type['settings']['handler_settings']['target_bundles'][$bundle] === $bundle) {
+    if ($field_type['type'] == 'entityreference' && isset($field_type['settings']['handler_settings']['target_bundles'][$bundle]) && $field_type['settings']['handler_settings']['target_bundles'][$bundle] === $bundle && $field_type['settings']['handler'] == 'base') {
       $field_options[$field_type['field_name']] = check_plain($field_type['field_name']);
     }
   }
@@ -56,7 +56,7 @@ function entityreference_count_field_instance_settings_form($field, $instance) {
   if (empty($options)) {
     $form['counted_reference_fields_empty'] = array(
       '#prefix' => '<p>',
-      '#markup' => t('There are no entity reference fields to count. If you wish to count the number of references to a entity of this type, add a entityreference field to another content type, allowing it to reference this content type.'),
+      '#markup' => t('There are no entity reference fields to count. If you wish to count the number of references to a entity of this type, add a entityreference field to another content type, allowing it to reference this content type.') . ' ' . t('Note: Only fields which use the "Simple" mode can be used, the "Views" mode will not work.'),
       '#suffix' => '</p>',
     );
   }
@@ -64,7 +64,7 @@ function entityreference_count_field_instance_settings_form($field, $instance) {
     $form['counted_reference_fields'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Entity reference fields that may be counted'),
-      '#description' => t('Select the entity refence fields that you would like to count.'),
+      '#description' => t('Select the entity refence fields that you would like to count.') . ' ' . t('Note: Only fields which use the "Simple" mode can be used, the "Views" mode will not work.'),
       '#multiple' => TRUE,
       '#default_value' => $settings['counted_reference_fields'],
       '#options' => $options,
