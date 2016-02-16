@@ -26,12 +26,12 @@ function entityreference_count_field_info() {
 }
 
 /**
- * Generate a list of available node reference fields to count.
+ * Generate a list of available entityreference fields to count.
  *
  * @param $bundle
  *   The field instance bundle.
  * @return
- *   An array of nodereference fields that are available to count.
+ *   An array of entityreference fields that are available to count.
  */
 function entityreference_count_field_options($bundle) {
   $field_types = field_info_fields();
@@ -364,13 +364,13 @@ function entityreference_count_get_fields_db($field_names) {
  *   A count of the number of references to the entity
  */
 function entityreference_count_get_count($settings, $entity_type, $entity) {
-  // Get the db info for the node reference fields.
+  // Get the db info for the entityreference fields.
   $db = entityreference_count_get_fields_db($settings['counted_reference_fields']);
 
-  // Get the entity info
+  // Get the entity info.
   $entity_info = entity_get_info($entity_type);
 
-  // if not defined the base table and entity key id omit the count
+  // if not defined the base table and entity key id omit the count.
   if (empty($entity_info['base table']) && empty($entity_info['entity keys']['id'])) {
     return;
   }
