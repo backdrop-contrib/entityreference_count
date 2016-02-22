@@ -34,12 +34,11 @@ function entityreference_count_field_info() {
  *   An array of entityreference fields that are available to count.
  */
 function entityreference_count_field_options($bundle) {
-  $field_types = field_info_fields();
   $field_options = array();
 
-  foreach ($field_types as $field_type) {
-    if ($field_type['type'] == 'entityreference' && isset($field_type['settings']['handler_settings']['target_bundles'][$bundle]) && $field_type['settings']['handler_settings']['target_bundles'][$bundle] === $bundle && $field_type['settings']['handler'] == 'base') {
-      $field_options[$field_type['field_name']] = check_plain($field_type['field_name']);
+  foreach (field_read_fields(array('type' => 'entityreference')) as $field_name => $field_info) {
+    if ($field_info['settings']['handler'] == 'base') {
+      $field_options[$field_name] = $field_name;
     }
   }
 
@@ -452,29 +451,6 @@ function entityreference_count_entity_delete($entity, $entity_type) {
 }
 
 /**
- * Get an array of entity reference fields for a particular entity bundle.
- *
- * @param $entity_type
- *   The entity type
- * @param $bundle
- *   The content type for which we want a list of entity reference fields.
- * @return
- *   An array of fields.
- */
-function entityreference_count_get_entityreference_fields($entity_type, $bundle) {
-  $entityreference_fields = array();
-  $fields = field_info_fields();
-
-  foreach ($fields as $field) {
-    if ($field['type'] == 'entityreference' && isset($field['bundles'][$entity_type]) && in_array($bundle, $field['bundles'][$entity_type])) {
-      $entityreference_fields[$field['field_name']] = $field;
-    }
-  }
-
-  return $entityreference_fields;
-}
-
-/**
  * From a set of entity reference fields get those that are counted by a entityreference count field.
  *
  * @param $entity_type
@@ -486,14 +462,17 @@ function entityreference_count_get_entityreference_fields($entity_type, $bundle)
  */
 function entityreference_count_get_counted_entityreference_fields($entity_type, $entity_references) {
   $counted_fields = array();
-  $bundles = field_info_instances($entity_type);
 
-  foreach ($bundles as $bundle) {
-    foreach ($bundle as $instance) {
-      if (isset($instance['settings']['counted_reference_fields'])) {
-        foreach ($entity_references as $entity_reference) {
-          if (in_array($entity_reference['field_name'], $instance['settings']['counted_reference_fields'], TRUE)) {
-            $counted_fields[$entity_reference['field_name']] = $entity_reference['settings']['target_type'];
+  foreach (field_read_fields(array('type' => 'entityreference_count')) as $field_name => $field_info) {
+    $full_field = field_info_field($field_name);
+    foreach ($full_field['bundles'] as $type => $bundles) {
+      foreach ($bundles as $bundle) {
+        $instance = field_info_instance($type, $field_name, $bundle);
+        if (isset($instance['settings']['counted_reference_fields'])) {
+          foreach ($entity_references as $entity_reference) {
+            if (in_array($entity_reference['field_name'], $instance['settings']['counted_reference_fields'], TRUE)) {
+              $counted_fields[$entity_reference['field_name']] = $entity_reference['settings']['target_type'];
+            }
           }
         }
       }
@@ -560,7 +539,7 @@ function entityreference_count_references_update($entity_type, $entity, $delay =
   }
 
   // Get all the entity reference fields for this content type.
-  $entityreference_fields = entityreference_count_get_entityreference_fields($entity_type, $entity->type);
+  $entityreference_fields = field_read_fields(array('type' => 'entityreference', 'entity_type' => $entity_type, 'bundle' => $entity->type));
 
   // If there are no entity references for this content type then there is nothing to count.
   if (empty($entityreference_fields)) {
