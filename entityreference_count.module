@@ -123,7 +123,7 @@ function entityreference_count_field_widget_info() {
  */
 function entityreference_count_field_formatter_info() {
   return array(
-    'entityreference_count_default' => array(
+    'entityreference_count_formatter_default' => array(
       'label' => t('Default'),
       'field types' => array('entityreference_count'),
       'settings'  => array(
@@ -131,11 +131,11 @@ function entityreference_count_field_formatter_info() {
         'link_class' => '',
       ),
     ),
-    'entityreference_count_nonzero' => array(
+    'entityreference_count_formatter_nonzero' => array(
       'label' => t('Non-zero'),
       'field types' => array('entityreference_count'),
     ),
-    'entityreference_count_labeled_count' => array(
+    'entityreference_count_formatter_labeled_count' => array(
       'label' => t('Labeled Count'),
       'field types' => array('entityreference_count'),
       'settings'  => array(
@@ -156,7 +156,7 @@ function entityreference_count_field_formatter_settings_form($field, $instance, 
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
 
-  if ($display['type'] == 'entityreference_count_default') {
+  if ($display['type'] == 'entityreference_count_formatter_default') {
     $element['link'] = array(
       '#type' => 'checkbox',
       '#title' => t('Link count to the referenced entity'),
@@ -176,7 +176,7 @@ function entityreference_count_field_formatter_settings_form($field, $instance, 
 
   // Based on function format_plural
   // See https://api.drupal.org/api/drupal/includes%21common.inc/function/format_plural/7
-  if ($display['type'] == 'entityreference_count_labeled_count') {
+  if ($display['type'] == 'entityreference_count_formatter_labeled_count') {
     $element['singular'] = array(
       '#title' => t('Singular Label'),
       '#description' => t('The string for the singular case. Make sure it is clear this is singular, to ease translation (e.g., use "1 new comment" instead of "1 new"). Do not use @count in the singular string.'),
@@ -222,12 +222,12 @@ function entityreference_count_field_formatter_settings_summary($field, $instanc
 
   $summary = array();
 
-  if ($display['type'] == 'entityreference_count_default') {
+  if ($display['type'] == 'entityreference_count_formatter_default') {
     $summary[] = $settings['link'] ? t('Link to the referenced entity') : t('No link');
     $summary[] = t('Link class: @link_class', array('@link_class' => $settings['link_class']));
   }
 
-  if ($display['type'] == 'entityreference_count_labeled_count') {
+  if ($display['type'] == 'entityreference_count_formatter_labeled_count') {
     $summary[] =  t('Singular label: @singular', array('@singular' => $settings['singular']));
     $summary[] = t('Plural label: @plural', array('@plural' => $settings['plural']));
     $summary[] = $settings['link'] ? t('Link to the referenced entity') : t('No link');
@@ -247,7 +247,7 @@ function entityreference_count_field_formatter_view($entity_type, $entity, $fiel
   $settings = $display['settings'];
 
   switch ($display['type']) {
-    case 'entityreference_count_default':
+    case 'entityreference_count_formatter_default':
       foreach ($items as $delta => $item) {
         // Handle Conditional Link Logic
         if ($settings['link'] && ($uri = entity_uri($entity_type, $entity))) {
@@ -269,7 +269,7 @@ function entityreference_count_field_formatter_view($entity_type, $entity, $fiel
       }
       break;
 
-    case 'entityreference_count_nonzero':
+    case 'entityreference_count_formatter_nonzero':
       foreach ($items as $delta => $item) {
         if ($item['count'] > 0) {
           $element[$delta] = array('#markup' => $item['count']);
@@ -277,7 +277,7 @@ function entityreference_count_field_formatter_view($entity_type, $entity, $fiel
       }
       break;
 
-    case 'entityreference_count_labeled_count':
+    case 'entityreference_count_formatter_labeled_count':
       foreach ($items as $delta => $item) {
         $output = '';
         // Handle Zero, Singular, Plural Logic
