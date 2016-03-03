@@ -26,37 +26,21 @@ function entityreference_count_field_info() {
 }
 
 /**
- * Generate a list of available entityreference fields to count.
- *
- * @param $bundle
- *   The field instance bundle.
- * @return
- *   An array of entityreference fields that are available to count.
- */
-function entityreference_count_field_options($entity_type) {
-  $field_options = array();
-
-  foreach (field_read_fields(array('type' => 'entityreference', 'entity_type' => $entity_type)) as $field_name => $field_info) {
-    if ($field_info['settings']['handler'] == 'base') {
-      $field_options[$field_name] = $field_name;
-    }
-  }
-
-  return $field_options;
-}
-
-/**
  * Implements hook_field_instance_settings_form().
  */
 function entityreference_count_field_instance_settings_form($field, $instance) {
   $settings = $instance['settings'];
-  $options = entityreference_count_field_options($instance['entity_type']);
   $form = array();
 
-  if (empty($options)) {
+  $er_fields = array();
+  foreach (field_read_fields(array('type' => 'entityreference', 'entity_type' => $instance['entity_type'])) as $field_name => $field_info) {
+    $er_fields[$field_name] = $field_name;
+  }
+
+  if (empty($er_fields)) {
     $form['counted_reference_fields_empty'] = array(
       '#prefix' => '<p>',
-      '#markup' => t('There are no entity reference fields to count. If you wish to count the number of references to a entity of this type, add a entityreference field to another content type, allowing it to reference this content type.') . ' ' . t('Note: Only fields which use the "Simple" mode can be used, the "Views" mode will not work.'),
+      '#markup' => t('There are no entity reference fields to count. If you wish to count the number of references to an entity of this type, add an entityreference field to another content type, allowing it to reference this content type.'),
       '#suffix' => '</p>',
     );
   }
@@ -64,10 +48,10 @@ function entityreference_count_field_instance_settings_form($field, $instance) {
     $form['counted_reference_fields'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Entity reference fields that may be counted'),
-      '#description' => t('Select the entity refence fields that you would like to count.') . ' ' . t('Note: Only fields which use the "Simple" mode can be used, the "Views" mode will not work.'),
+      '#description' => t('Select the entity refence fields that you would like to count.'),
       '#multiple' => TRUE,
       '#default_value' => $settings['counted_reference_fields'],
-      '#options' => $options,
+      '#options' => $er_fields,
     );
     $form['count_only_published'] = array(
       '#type' => 'checkbox',
