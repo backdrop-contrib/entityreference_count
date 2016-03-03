@@ -33,10 +33,10 @@ function entityreference_count_field_info() {
  * @return
  *   An array of entityreference fields that are available to count.
  */
-function entityreference_count_field_options($bundle) {
+function entityreference_count_field_options($entity_type) {
   $field_options = array();
 
-  foreach (field_read_fields(array('type' => 'entityreference')) as $field_name => $field_info) {
+  foreach (field_read_fields(array('type' => 'entityreference', 'entity_type' => $entity_type)) as $field_name => $field_info) {
     if ($field_info['settings']['handler'] == 'base') {
       $field_options[$field_name] = $field_name;
     }
@@ -50,7 +50,7 @@ function entityreference_count_field_options($bundle) {
  */
 function entityreference_count_field_instance_settings_form($field, $instance) {
   $settings = $instance['settings'];
-  $options = entityreference_count_field_options($instance['bundle']);
+  $options = entityreference_count_field_options($instance['entity_type']);
   $form = array();
 
   if (empty($options)) {
