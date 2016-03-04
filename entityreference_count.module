@@ -40,23 +40,18 @@ function entityreference_count_field_instance_settings_form($field, $instance) {
   if (empty($er_fields)) {
     $form['counted_reference_fields_empty'] = array(
       '#prefix' => '<p>',
-      '#markup' => t('There are no entity reference fields to count. If you wish to count the number of references to an entity of this type, add an entityreference field to another content type, allowing it to reference this content type.'),
+      '#markup' => t('There are no entity reference fields to count. If you wish to count the number of references to an entity of this type, add an entityreference field to another bundle, allowing it to reference this bundle.'),
       '#suffix' => '</p>',
     );
   }
   else {
     $form['counted_reference_fields'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Entity reference fields that may be counted'),
-      '#description' => t('Select the entity refence fields that you would like to count.'),
+      '#title' => t('Entity reference fields that may be counted:'),
+      '#description' => t('Select the entity reference fields that you would like to count.'),
       '#multiple' => TRUE,
       '#default_value' => $settings['counted_reference_fields'],
       '#options' => $er_fields,
-    );
-    $form['count_only_published'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Do not count references from unpublished nodes.'),
-      '#default_value' => $settings['count_only_published'],
     );
     $bundles_list = field_info_bundles($instance['entity_type']);
     $bundles = array();
@@ -65,9 +60,16 @@ function entityreference_count_field_instance_settings_form($field, $instance) {
         $bundles[$bkey] = $data['label'];
       }
     }
+    if ($instance['entity_type'] == 'node') {
+      $form['count_only_published'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Do not count references from unpublished nodes.'),
+        '#default_value' => $settings['count_only_published'],
+      );
+    }
     $form['allowed_bundles'] = array(
       '#type' => 'select',
-      '#title' => t('Count nodes that belong to these bundles.'),
+      '#title' => t('Count references that belong to these bundles:'),
       '#description' => t('If no bundles are selected, all bundles will be counted.'),
       '#options' => $bundles,
       '#multiple' => TRUE,
@@ -347,6 +349,7 @@ function entityreference_count_get_fields_db($field_names) {
  *   A count of the number of references to the entity
  */
 function entityreference_count_get_count($settings, $entity_type, $entity) {
+
   // Get the db info for the entityreference fields.
   $db = entityreference_count_get_fields_db($settings['counted_reference_fields']);
 
@@ -364,13 +367,13 @@ function entityreference_count_get_count($settings, $entity_type, $entity) {
 
     $query = db_select($base_table, 'e');
     $query->fields('e', array($entity_key_id));
-    $alias = $query->innerJoin($db[0]['table'], 'nr', "%alias.{$db[0]['column']} = e." . $entity_key_id);
+    $alias = $query->innerJoin($db[0]['table'], 'er', "%alias.{$db[0]['column']} = e." . $entity_key_id);
     $query->condition("{$alias}.{$db[0]['column']}", $entity->{$entity_key_id});
-    if ($settings['count_only_published']) {
-      $query->condition('e.status', 1);
+    if ($entity_type == 'node' && $settings['count_only_published']) {
+      $query->condition('e.status', NODE_PUBLISHED);
     }
     if (!empty($settings['allowed_bundles'])) {
-      $query->condition('nr.bundle', array_keys($settings['allowed_bundles']), 'IN');
+      $query->condition('er.bundle', array_keys($settings['allowed_bundles']), 'IN');
     }
 
     unset($db[0]);
@@ -379,13 +382,13 @@ function entityreference_count_get_count($settings, $entity_type, $entity) {
     foreach ($db as $d) {
       $select = db_select($base_table, 'e');
       $select->fields('e', array($entity_key_id));
-      $alias = $select->innerJoin($d['table'], 'nr', "%alias.{$db['column']} = e." . $entity_key_id);
+      $alias = $select->innerJoin($d['table'], 'er', "%alias.{$db['column']} = e." . $entity_key_id);
       $select->condition("{$alias}.{$d['column']}", $entity->{$entity_key_id});
-      if ($settings['count_only_published']) {
-        $select->condition('e.status', 1);
+      if ($entity_type == 'node' && $settings['count_only_published']) {
+        $select->condition('e.status', NODE_PUBLISHED);
       }
       if (!empty($settings['allowed_bundles'])) {
-        $query->condition('nr.bundle', array_keys($settings['allowed_bundles']), 'IN');
+        $query->condition('er.bundle', array_keys($settings['allowed_bundles']), 'IN');
       }
 
       $query->union($select, 'UNION ALL');
