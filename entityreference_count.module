@@ -367,7 +367,8 @@ function entityreference_count_get_count($settings, $entity_type, $entity) {
 
     $query = db_select($base_table, 'e');
     $query->fields('e', array($entity_key_id));
-    $alias = $query->innerJoin($db[0]['table'], 'er', "%alias.{$db[0]['column']} = e." . $entity_key_id);
+    $alias = $query->innerJoin($db[0]['table'], 'er', '%alias.entity_id = e.' . $entity_key_id);
+    //$alias = $query->innerJoin($db[0]['table'], 'er', "%alias.{$db[0]['column']} = e." . $entity_key_id);
     $query->condition("{$alias}.{$db[0]['column']}", $entity->{$entity_key_id});
     if ($entity_type == 'node' && $settings['count_only_published']) {
       $query->condition('e.status', NODE_PUBLISHED);
@@ -382,7 +383,8 @@ function entityreference_count_get_count($settings, $entity_type, $entity) {
     foreach ($db as $d) {
       $select = db_select($base_table, 'e');
       $select->fields('e', array($entity_key_id));
-      $alias = $select->innerJoin($d['table'], 'er', "%alias.{$db['column']} = e." . $entity_key_id);
+      $alias = $select->innerJoin($d['table'], 'er', '%alias.entity_id = e.' . $entity_key_id);
+      //$alias = $select->innerJoin($d['table'], 'er', "%alias.{$db['column']} = e." . $entity_key_id);
       $select->condition("{$alias}.{$d['column']}", $entity->{$entity_key_id});
       if ($entity_type == 'node' && $settings['count_only_published']) {
         $select->condition('e.status', NODE_PUBLISHED);
