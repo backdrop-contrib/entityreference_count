@@ -1,6 +1,6 @@
-name = EntityReference Count
+type = module
+name = Entity Reference Count
 description = Defines a field type for counting the references to a entity.
-package = Fields
-core = 7.x
-dependencies[] = field
+backdrop = 1.x
 dependencies[] = entityreference
+package = Fields
