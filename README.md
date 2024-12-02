@@ -42,6 +42,7 @@ https://github.com/backdrop-contrib/entityreference_count/issues.
 Current Maintainers
 -------------------
 
+- [Norm](https://github.com/NormPlum)
 - Seeking a maintainer
 
 
