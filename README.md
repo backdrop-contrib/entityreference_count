@@ -4,13 +4,13 @@ Entity Reference Count
 Entity Reference Count is a field type that will count and display the number of
 references to a particular entity.
 
-For an entity type that is referenced by other entities, you can add a special
-field of type 'Entity reference count' that is automatically calculated when the
-referencing or referenced entity is created, updated or deleted. You can choose
-which fields from referencing entity types you want to aggregate in the count.
-That way, every time an entity references this one, the counter will be
-incremented. This can be used to display the count in the entity itself, or as a
-field in a view.
+Say you have two content types: 'Clinic' and 'Doctor'. Doctor has an entity
+reference field referencing Clinic (i.e. a doctor works at a clinic, and
+therefore a clinic can have one-or-more doctors). When you add an 'Entity
+Reference Count' field to Clinic and configure it to count references from the
+Doctor content type, you will be able to see how many doctors a clinic has when
+viewing the node. Whenever the Clinic or any of the Doctor nodes are added,
+updated or deleted, the count field will also be updated.
 
 
 Installation
@@ -43,7 +43,7 @@ Current Maintainers
 -------------------
 
 - [Norm](https://github.com/NormPlum)
-- Seeking a maintainer
+- Seeking co-maintainer
 
 
 Credits
