@@ -31,14 +31,14 @@ function entityreference_count_field_instance_settings_form($field, $instance) {
   $settings = $instance['settings'];
   $form = array();
 
-  $er_fields = array();
+  $entityreference_fields = array();
   foreach (field_read_fields(array('type' => 'entityreference')) as $field_name => $field_info) {
     if ($field_info['settings']['target_type'] == 'node') {
-      $er_fields[$field_name] = $field_name;
+      $entityreference_fields[$field_name] = $field_name;
     }
   }
 
-  if (empty($er_fields)) {
+  if (empty($entityreference_fields)) {
     $form['counted_reference_fields_empty'] = array(
       '#prefix' => '<p>',
       '#markup' => t('There are no entity reference fields to count. If you wish to count the number of references to an entity of this type, add an entity reference field to another bundle and allow it to reference this bundle.'),
@@ -49,10 +49,9 @@ function entityreference_count_field_instance_settings_form($field, $instance) {
     $form['counted_reference_fields'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Entity reference fields that may be counted:'),
-      '#description' => t('Select the entity reference fields that you would like to count.'),
       '#multiple' => TRUE,
       '#default_value' => $settings['counted_reference_fields'],
-      '#options' => $er_fields,
+      '#options' => $entityreference_fields,
     );
     $bundles_list = field_info_bundles($instance['entity_type']);
     $bundles = array();
@@ -166,7 +165,7 @@ function entityreference_count_field_formatter_settings_form($field, $instance, 
   if ($display['type'] == 'entityreference_count_formatter_labeled_count') {
     $element['singular'] = array(
       '#title' => t('Singular Label'),
-      '#description' => t('The string for the singular case. Make sure it is clear this is singular, to ease translation (e.g., use "1 new comment" instead of "1 new"). Do not use @count in the singular string.'),
+      '#description' => t('Make sure it is clear this is singular, to ease translation (e.g., use "1 new comment" instead of "1 new"). Do not use @count here.'),
       '#type' => 'textfield',
       '#size' => 50,
       '#default_value' => (empty($settings['singular'])) ? '1 reference' : $settings['singular'],
@@ -174,7 +173,7 @@ function entityreference_count_field_formatter_settings_form($field, $instance, 
     );
     $element['plural'] = array(
       '#title' => t('Plural Label'),
-      '#description' => t('The string for the plural case. Make sure it is clear this is plural, to ease translation. Use @count in place of the item count, (e.g., "@count new comments").'),
+      '#description' => t('Make sure it is clear this is plural, to ease translation. Use @count in place of the item count, (e.g., "@count new comments").'),
       '#type' => 'textfield',
       '#size' => 50,
       '#default_value' => (empty($settings['plural'])) ? '@count references' : $settings['plural'],
@@ -182,7 +181,7 @@ function entityreference_count_field_formatter_settings_form($field, $instance, 
     );
     $element['link'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Link count to the referenced entity'),
+      '#title' => t('Link to the referenced entity'),
       '#default_value' => $settings['link'],
     );
     $element['link_class'] = array(
@@ -320,7 +319,7 @@ function entityreference_count_get_fields_db($field_names) {
     foreach ($field_names as $field_name) {
       $field = field_info_field($field_name);
       // Make sure we are dealing with SQL storage.
-      if ($field['storage']['type'] == 'field_sql_storage') {
+      if (!empty($field['storage']['type']) && $field['storage']['type'] == 'field_sql_storage') {
         $db_info = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'];
         $tables = array_keys($db_info);
         $table = array_pop($tables);
@@ -530,7 +529,6 @@ function entityreference_count_references_update($entity_type, $entity, $delay =
   }
 
   // Get all the entity reference fields for this content type.
-  // $entityreference_fields = field_read_fields(array('type' => 'entityreference', 'entity_type' => $entity_type, 'bundle' => $entity->type));
   $entityreference_fields = array();
   foreach (field_read_fields(array('type' => 'entityreference')) as $field_name => $field) {
     foreach (field_read_instances(array('field_name' => $field_name)) as $instance) {
@@ -623,6 +621,8 @@ function entityreference_count_delayed_entity_ids($entity_type = NULL, $entity_i
 
 /**
  * Implements hook_exit().
+ *
+ * @see entityreference_count_entity_delete()
  */
 function entityreference_count_exit() {
   $entity_ids = entityreference_count_delayed_entity_ids();
